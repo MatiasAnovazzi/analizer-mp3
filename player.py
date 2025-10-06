@@ -29,32 +29,23 @@ class MusicPlayer:
         if self._on_end_callback:
             self._on_end_callback()
 
-    def play_song(self, path: str, on_end=None):
-        """Reproduce una canción aplicando fade in/out y salto al punto emocionante."""
-        self._on_end_callback = on_end
-        momento = MaxRms(path) - 3
+    def play_song(self, path: str, momen):
+        self._on_end_callback = None
+        momento = momen
         print(f"🎧 Reproduciendo {path}, salto a {momento:.2f}s")
-
         media = self.instance.media_new(path)
         self.player.set_media(media)
-
-        def on_playing(event):
-            print("🎵 Reproducción iniciada")
-
-            def delayed_seek():
-                while self.player.get_time() <= 0:
-                    pass
-                self.player.set_time(int(momento * 1000))
-                print(f"⏩ Saltando a {momento:.2f}s")
-                self._fade_in()
-
-                duracion = self.player.get_length() / 1000
-                while self.player.get_time() < (duracion - self.fade_out_duracion) * 1000:
-                    time.sleep(0.1)
-                self._fade_out()
-
-            threading.Thread(target=delayed_seek, daemon=True).start()
-
-        eventos = self.player.event_manager()
-        eventos.event_attach(vlc.EventType.MediaPlayerPlaying, on_playing)
         self.player.play()
+    
+        # Esperar a que inicie realmente
+        while self.player.get_state() not in (vlc.State.Playing, vlc.State.Ended):
+            time.sleep(0.1)
+        self.player.set_time(int(momento * 1000))
+        self._fade_in()
+    
+        # Esperar hasta casi el final
+        duracion = self.player.get_length() / 1000
+        while self.player.get_time() < (duracion - self.fade_out_duracion) * 1000:
+            time.sleep(0.1)
+        self._fade_out()
+    

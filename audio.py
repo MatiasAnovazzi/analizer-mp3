@@ -23,7 +23,7 @@ def MaxRms(ruta):
     if len(peaks) > 0:
         first_peak_index = peaks[0]
         highlight_time = times[first_peak_index]
-        print(f"Primer pico fuerte detectado en {highlight_time:.2f} segundos.")
+        print(f"Primer pico fuerte detectado en {highlight_time:.2f} segundos. Ruta: {ruta}")
         return highlight_time
     else:
         highlight_time = 0

@@ -1,24 +1,45 @@
-# main.py
+import json
+import os
+from audio import MaxRms
 from player import MusicPlayer
 
 # Lista de canciones (rutas)
 playlist = [
+    "superman.mp3",
+    "jurabas-tu.mp3",
     "my-eyes.mp3",
     "the-search.mp3",
-    "cancion3.mp3"
+    "silbando.mp3"
 ]
 
 player = MusicPlayer()
+temp = {}
 
-def play_next(index=0):
-    if index < len(playlist):
-        player.play_song(playlist[index], on_end=lambda: play_next(index + 1))
+# 📂 Cargar el JSON existente si ya está creado
+if os.path.exists("saved.json"):
+    with open("saved.json", "r") as saved:
+        try:
+            temp = json.load(saved)
+        except json.JSONDecodeError:
+            print("⚠️ El archivo saved.json está dañado, se reiniciará.")
+            temp = {}
+else:
+    print("📄 No se encontró saved.json, se creará uno nuevo.")
+
+# 🔍 Revisar cada canción en la playlist
+for song in playlist:
+    if song not in temp:
+        print(f"🎧 Analizando nueva canción: {song}")
+        resultado = MaxRms(song)
+        temp[song] = [resultado]
     else:
-        print("✅ Playlist terminada.")
+        print(f"✅ Canción ya analizada: {song}")
 
-play_next(0)
+# 💾 Guardar el archivo actualizado
+with open("saved.json", "w") as saved:
+    json.dump(temp, saved, indent=4)
 
-# Mantener vivo el programa mientras se reproduce
-import time
-while True:
-    time.sleep(0.1)
+# ▶️ Reproducir todas las canciones
+for song in playlist:
+    momento = temp[song][0]
+    player.play_song(song, momento)

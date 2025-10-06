@@ -1,17 +1,24 @@
-from audio import MaxRms
-import vlc, time
+# main.py
+from player import MusicPlayer
 
-momento = MaxRms("silbando.mp3") - 3
-reproductor = vlc.MediaPlayer("silbando.mp3")
-reproductor.play()
+# Lista de canciones (rutas)
+playlist = [
+    "my-eyes.mp3",
+    "the-search.mp3",
+    "cancion3.mp3"
+]
 
+player = MusicPlayer()
 
-# Saltar al tiempo del pico de energía
-reproductor.set_time(int(momento * 1000))  
-print("Reproduciendo audio...")
-for v in range(0, 101, 10):
-    reproductor.audio_set_volume(v)
-    time.sleep(0.2)
-duracion = reproductor.get_length() / 1000  # Obtener duración en segundos 
-print(f"Duración del audio: {duracion} segundos")
-time.sleep(duracion)
+def play_next(index=0):
+    if index < len(playlist):
+        player.play_song(playlist[index], on_end=lambda: play_next(index + 1))
+    else:
+        print("✅ Playlist terminada.")
+
+play_next(0)
+
+# Mantener vivo el programa mientras se reproduce
+import time
+while True:
+    time.sleep(0.1)
